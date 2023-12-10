@@ -1,2 +1,2 @@
 // Ignore changes to credentials.ini; no leaking passwords
-*credentials.ini*
+credentials.ini
