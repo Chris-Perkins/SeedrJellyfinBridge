@@ -15,7 +15,7 @@ class SeedrClient():
         if response.status_code == 200:
             return response.json()
         else:
-            raise response
+            raise Exception(response)
     
     def list_folder_contents(self, folder_id: int) -> any:
         url = "https://www.seedr.cc/rest/folder/{folder_id}"
@@ -23,7 +23,7 @@ class SeedrClient():
         if response.status_code == 200:
             return response.json()
         else:
-            raise response
+            raise Exception(response)
         
     def download_file(self, file_id: int, destination_path: str) -> any:
         url = "https://www.seedr.cc/rest/file/{file_id}"
@@ -37,12 +37,12 @@ class SeedrClient():
             with open(destination_path, "wb") as file:
                 file.write(response.content)
         else:
-            raise response
+            raise Exception(response)
 
 
     def delete_folder(self, folder_id: int) -> any:
-        url = "https://www.seedr.cc/rest/folder/{folder_id}/delete"
-        response = requests.post(url.format(folder_id=folder_id), auth=(self.username, self.password))
+        url = "https://www.seedr.cc/rest/folder/{folder_id}"
+        response = requests.delete(url.format(folder_id=folder_id), auth=(self.username, self.password))
 
         if response.status_code != 200:
-            raise response
+            raise Exception(response)

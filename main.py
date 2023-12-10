@@ -1,4 +1,5 @@
 import configparser
+import asyncio
 from seedr_client import SeedrClient
 from processed_file_registry import ProcessedFileRegistry
 from media_bridge_manager import MediaBridgeManager
@@ -117,8 +118,18 @@ def __get_seedr_folder_id_by_name_helper(
             return response
     return None
 
+async def perform_movie_series_scan(
+        manager: MediaBridgeManager, 
+        seedr_series_folder_id: int, 
+        series_storage_path: str,
+        seedr_movies_folder_id: int,
+        movies_storage_path: str,
+):
+    manager.scan(folder_id=seedr_series_folder_id, base_download_path=series_storage_path)
+    manager.scan(folder_id=seedr_movies_folder_id, base_download_path=movies_storage_path)
+    
 
-def main():
+async def main():
     print("initializing...")
 
     config_parser = configparser.ConfigParser()
@@ -135,25 +146,21 @@ def main():
         jellyfin_client=jellyfin_client,
     )
 
-    print("Finished initializing.")
-
-    # print("Scanning series...")
-    # print("Finding series folder id")
-    # series_folder_id = get_seedr_folder_id_by_name(
-    #     seedr_client=seedr_client,
-    #     expected_folder_name=configuration.seedr_series_folder_name,
-    # )
-    # print("Found series folder ID")
-    # bridgeManager.scan(folder_id=series_folder_id, base_download_path=configuration.series_storage_path)
-
-    print("Scanning movies...")
-    print("Finding movies folder id")
+    series_folder_id = get_seedr_folder_id_by_name(
+        seedr_client=seedr_client,
+        expected_folder_name=configuration.seedr_series_folder_name,
+    )
     movies_folder_id = get_seedr_folder_id_by_name(
         seedr_client=seedr_client,
         expected_folder_name=configuration.seedr_movies_folder_name,
     )
-    print("Found movies folder ID")
-    bridgeManager.scan(folder_id=movies_folder_id, base_download_path=configuration.movies_storage_path)
+    print("Finished initializing.")
+
+    print("Starting scans.")
+    while True:
+        await bridgeManager.scan(folder_id=series_folder_id, base_download_path=configuration.series_storage_path)
+        await bridgeManager.scan(folder_id=movies_folder_id, base_download_path=configuration.movies_storage_path)
+        await asyncio.sleep(30)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

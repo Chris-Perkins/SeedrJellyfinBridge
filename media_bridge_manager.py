@@ -31,7 +31,7 @@ class MediaBridgeManager():
     After scanning, the catalog is refreshed.
     That's a little wasteful, but whatever.
     '''
-    def scan(self, folder_id: int, base_download_path: str):
+    async def scan(self, folder_id: int, base_download_path: str):
         folder_contents = self.seedr_client.list_folder_contents(folder_id=folder_id)
         self.__recursively_process_seedr_folder(folder_contents, base_download_path)
         self.jellyfin_client.refresh_catalog()
@@ -51,7 +51,6 @@ class MediaBridgeManager():
     '''
     def __recursively_process_seedr_folder(self, folder_contents: any, base_download_path: str, cur_path: str = ""):
         for folder in folder_contents['folders']:
-            print(folder)
             folder_id = folder['id']
             folder_name = folder['name']
             timestamp = folder['last_update']
@@ -59,15 +58,18 @@ class MediaBridgeManager():
             if self.processed_file_registry.is_processed(folder_id, timestamp):
                 continue
 
+            print(f"Scanning {folder}")
             child_folder_contents = self.seedr_client.list_folder_contents(folder_id)
             # for some reason, a folder name includes the name of parent folders
-            # so we don't need to keep a track of the parents themselves
+            # so we don't need to keep a track of the path manually
             self.__recursively_process_seedr_folder(
                 folder_contents=child_folder_contents, 
                 base_download_path=base_download_path, 
                 cur_path=folder_name,
             )
             self.processed_file_registry.mark_processed(item_id=folder_id, timestamp=timestamp)
+            self.seedr_client.delete_folder(folder_id=folder_id)
+            print(f"Finished scanning and deleted {folder}")
 
         for file in folder_contents['files']:
             file_name = file['name']
