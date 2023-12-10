@@ -1,15 +1,10 @@
 import requests
 import os
 
-class SeedrCredentials:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
 # Client based on the Seedr API V1 client documented here:
 # https://www.seedr.cc/docs/api/rest/v1
 class SeedrClient():
-    def __init__(self, username, password):
+    def __init__(self, username: str, password: str):
         self.username = username
         self.password = password
     
@@ -22,7 +17,7 @@ class SeedrClient():
         else:
             raise response
     
-    def list_folder_contents(self, folder_id) -> any:
+    def list_folder_contents(self, folder_id: int) -> any:
         url = "https://www.seedr.cc/rest/folder/{folder_id}"
         response = requests.get(url.format(folder_id=folder_id), auth=(self.username, self.password))
         if response.status_code == 200:
@@ -45,7 +40,7 @@ class SeedrClient():
             raise response
 
 
-    def delete_folder(self, folder_id) -> any:
+    def delete_folder(self, folder_id: int) -> any:
         url = "https://www.seedr.cc/rest/folder/{folder_id}/delete"
         response = requests.post(url.format(folder_id=folder_id), auth=(self.username, self.password))
 
