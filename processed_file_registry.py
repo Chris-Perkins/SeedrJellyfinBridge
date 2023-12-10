@@ -9,16 +9,16 @@ class ProcessedFileRegistry:
     def __init__(self, registry_file_path = "registry"):
         self.registry = set()
         self.registry_file_path = registry_file_path
-        self.__read_registry_from_file()
+        self.__read_registry_from_file(file_path=self.registry_file_path)
 
     def mark_processed(self, item_id, timestamp):
-        unique_entry = f"{item_id}_{timestamp}"
+        unique_entry = self.__create_entry_key(item_id, timestamp)
         self.registry.add(unique_entry)
         self.__save_registry_to_file(file_path=self.registry_file_path)
         self.__read_registry_from_file(file_path=self.registry_file_path)
 
     def is_processed(self, item_id, timestamp):
-        unique_entry = f"{item_id}_{timestamp}"
+        unique_entry = self.__create_entry_key(item_id, timestamp)
         return unique_entry in self.registry
 
     def __read_registry_from_file(self, file_path):
@@ -31,3 +31,6 @@ class ProcessedFileRegistry:
     def __save_registry_to_file(self, file_path):
         with open(file_path, "w") as file:
             file.write("\n".join(self.registry))
+    
+    def __create_entry_key(self, item_id: str, timestamp: str) -> str:
+        return f"{item_id}_{timestamp}"

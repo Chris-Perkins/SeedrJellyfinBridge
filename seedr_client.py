@@ -1,4 +1,5 @@
 import requests
+import os
 
 class SeedrCredentials:
     def __init__(self, username, password):
@@ -12,40 +13,41 @@ class SeedrClient():
         self.username = username
         self.password = password
     
-    def list_root_contents(self):
+    def list_root_contents(self) -> any:
         url = "https://www.seedr.cc/rest/folder"
         response = requests.get(url, auth=(self.username, self.password))
 
         if response.status_code == 200:
-            print(response.json())
+            return response.json()
         else:
             raise response
     
-    def list_folder_contents(self, folder_id):
+    def list_folder_contents(self, folder_id) -> any:
         url = "https://www.seedr.cc/rest/folder/{folder_id}"
         response = requests.get(url.format(folder_id=folder_id), auth=(self.username, self.password))
         if response.status_code == 200:
-            print(response.json())
+            return response.json()
         else:
-            # Handle error
             raise response
         
-    def download_file(self, file_id, destination_path):
+    def download_file(self, file_id: int, destination_path: str) -> any:
         url = "https://www.seedr.cc/rest/file/{file_id}"
         response = requests.get(url.format(file_id=file_id), auth=(self.username, self.password))
+        
         if response.status_code == 200:
+            # make intermediate directories if they don't already exist
+            directory = os.path.dirname(destination_path)
+            os.makedirs(directory, exist_ok=True)
+
             with open(destination_path, "wb") as file:
                 file.write(response.content)
-            print("File downloaded successfully.")
         else:
             raise response
 
 
-    def delete_folder(self, folder_id):
+    def delete_folder(self, folder_id) -> any:
         url = "https://www.seedr.cc/rest/folder/{folder_id}/delete"
         response = requests.post(url.format(folder_id=folder_id), auth=(self.username, self.password))
 
-        if response.status_code == 200:
-            print("File deleted successfully.")
-        else:
+        if response.status_code != 200:
             raise response
