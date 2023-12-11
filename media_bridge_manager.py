@@ -73,7 +73,7 @@ class MediaBridgeManager():
 
         for file in folder_contents['files']:
             file_name = file['name']
-            valid_cur_path = cur_path.replace("\"", "").split("\\")
+            valid_cur_path = cur_path.replace("\"", "").split("/")
 
             output_path = os.path.join(base_download_path, valid_cur_path[-1], file_name)
             print(output_path)
