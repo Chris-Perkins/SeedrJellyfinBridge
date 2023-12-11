@@ -75,6 +75,7 @@ class MediaBridgeManager():
             self.__recursively_process_seedr_folder(
                 folder_contents=child_folder_contents, 
                 base_download_path=base_download_path, 
+                base_folder_name=base_folder_name,
                 cur_path=folder_name,
             )
             self.processed_file_registry.mark_processed(item_id=folder_id, timestamp=timestamp)
