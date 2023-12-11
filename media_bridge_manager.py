@@ -73,9 +73,9 @@ class MediaBridgeManager():
 
         for file in folder_contents['files']:
             file_name = file['name']
-            valid_cur_path = cur_path.replace("\"", "").replace("/", "\\")
+            valid_cur_path = cur_path.replace("\"", "").split("\\")
 
-            output_path = os.path.join(base_download_path, valid_cur_path, file_name)
+            output_path = os.path.join(base_download_path, *valid_cur_path, file_name)
             print(output_path)
             self.seedr_client.download_file(
                 file_id=file['id'], 
