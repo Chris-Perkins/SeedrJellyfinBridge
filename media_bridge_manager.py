@@ -33,7 +33,11 @@ class MediaBridgeManager():
     '''
     async def scan(self, folder_id: int, folder_name: str, base_download_path: str):
         folder_contents = self.seedr_client.list_folder_contents(folder_id=folder_id)
-        self.__recursively_process_seedr_folder(folder_contents, base_download_path)
+        self.__recursively_process_seedr_folder(
+            folder_contents=folder_contents, 
+            base_download_path=base_download_path,
+            base_folder_name=folder_name,
+        )
         self.jellyfin_client.refresh_catalog()
     
     '''
@@ -80,7 +84,6 @@ class MediaBridgeManager():
         for file in folder_contents['files']:
             file_name = file['name']
             valid_cur_path = cur_path.replace(base_folder_name, "").replace("\"", "").split("/")
-
             output_path = os.path.join(base_download_path, *valid_cur_path, file_name)
             print(output_path)
             self.seedr_client.download_file(
