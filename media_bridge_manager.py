@@ -31,7 +31,7 @@ class MediaBridgeManager():
     After scanning, the catalog is refreshed.
     That's a little wasteful, but whatever.
     '''
-    async def scan(self, folder_id: int, base_download_path: str):
+    async def scan(self, folder_id: int, folder_name: str, base_download_path: str):
         folder_contents = self.seedr_client.list_folder_contents(folder_id=folder_id)
         self.__recursively_process_seedr_folder(folder_contents, base_download_path)
         self.jellyfin_client.refresh_catalog()
@@ -49,7 +49,13 @@ class MediaBridgeManager():
 
     After a folder has been processed, it is deleted to save storage.
     '''
-    def __recursively_process_seedr_folder(self, folder_contents: any, base_download_path: str, cur_path: str = ""):
+    def __recursively_process_seedr_folder(
+            self, 
+            folder_contents: any,
+            base_folder_name: str, 
+            base_download_path: str, 
+            cur_path: str = "",
+    ):
         for folder in folder_contents['folders']:
             folder_id = folder['id']
             folder_name = folder['name']
@@ -73,9 +79,9 @@ class MediaBridgeManager():
 
         for file in folder_contents['files']:
             file_name = file['name']
-            valid_cur_path = cur_path.replace("\"", "").split("/")
+            valid_cur_path = cur_path.replace(base_folder_name, "").replace("\"", "").split("/")
 
-            output_path = os.path.join(base_download_path, valid_cur_path[-1], file_name)
+            output_path = os.path.join(base_download_path, *valid_cur_path, file_name)
             print(output_path)
             self.seedr_client.download_file(
                 file_id=file['id'], 
