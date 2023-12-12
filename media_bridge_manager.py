@@ -1,14 +1,12 @@
 import os
 from seedr_client import SeedrClient
 from processed_file_registry import ProcessedFileRegistry
-from jellyfin_client import JellyfinClient
 
 '''
-The bridge between Seedr, the local system, and jellyfin.
+The bridge between Seedr and the local system.
 
 Scans seedr for new files.
-New files are then downloaded to a file path used Jellyfin.
-After download, refresh Jellyfin's library so it shows up appropriately.
+New files are then downloaded to a file path used by a media server.
 
 What could be cool: Hook this back up to Discord; post a message in a channel
 after the movie is done downloading
@@ -18,11 +16,9 @@ class MediaBridgeManager():
     def __init__(self, 
                  seedr_client: SeedrClient, 
                  processed_file_registry: ProcessedFileRegistry,
-                 jellyfin_client: JellyfinClient,
     ) -> None:
         self.seedr_client = seedr_client
         self.processed_file_registry = processed_file_registry
-        self.jellyfin_client = jellyfin_client
     
     '''
     Scans the input folder_id for any new files. New files are uploaded to
@@ -38,7 +34,6 @@ class MediaBridgeManager():
             base_download_path=base_download_path,
             base_folder_name=folder_name,
         )
-        self.jellyfin_client.refresh_catalog()
     
     '''
     Recursively processes the input folder contents, including all children

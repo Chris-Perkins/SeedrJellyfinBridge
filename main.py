@@ -3,7 +3,6 @@ import asyncio
 from seedr_client import SeedrClient
 from processed_file_registry import ProcessedFileRegistry
 from media_bridge_manager import MediaBridgeManager
-from jellyfin_client import JellyfinClient
 
 class MediaBridgeConfiguration():
     def __init__(
@@ -23,13 +22,9 @@ class Credentials:
             self, 
             seedr_username: str, 
             seedr_password: str,
-            jellyfin_base_url: str,
-            jellyfin_api_key: str,
     ):
         self.seedr_username = seedr_username
         self.seedr_password = seedr_password
-        self.jellyfin_base_url = jellyfin_base_url
-        self.jellyfin_api_key = jellyfin_api_key
 
 '''
 Reads credentials as configured in credentials.ini in the root directory.
@@ -42,15 +37,9 @@ def get_credentials(config_parser: configparser) -> Credentials:
     seedr_user = config_parser.get(seedr_section, 'username')
     seedr_password = config_parser.get(seedr_section, 'password')
 
-    jellyfin_section = 'Jellyfin'
-    jellyfin_base_url = config_parser.get(jellyfin_section, 'base_url')
-    jellyfin_api_key = config_parser.get(jellyfin_section, 'api_key')
-
     return Credentials(
         seedr_username=seedr_user, 
         seedr_password=seedr_password,
-        jellyfin_base_url=jellyfin_base_url,
-        jellyfin_api_key=jellyfin_api_key,
     )
 
 '''
@@ -138,12 +127,10 @@ async def main():
 
     seedr_client = SeedrClient(credentials.seedr_username, credentials.seedr_password)
     registry = ProcessedFileRegistry(registry_file_path="processed_registry.txt")
-    jellyfin_client = JellyfinClient(host_url=credentials.jellyfin_base_url, api_key=credentials.jellyfin_api_key)
 
     bridgeManager = MediaBridgeManager(
         seedr_client=seedr_client, 
         processed_file_registry=registry,
-        jellyfin_client=jellyfin_client,
     )
 
     series_folder_id = get_seedr_folder_id_by_name(
