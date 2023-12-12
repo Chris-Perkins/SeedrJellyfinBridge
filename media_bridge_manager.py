@@ -21,23 +21,38 @@ class MediaBridgeManager():
         self.processed_file_registry = processed_file_registry
     
     '''
-    Scans the input folder_id for any new files. New files are uploaded to
-    the specified base download path, postfixed by their location in seedr.
+    Scans the root folder for folders that begin with the input prefix.
+    If a folder does find a folder with the given prefix, it will be processed.
 
-    After scanning, the catalog is refreshed.
-    That's a little wasteful, but whatever.
+    Processed folders have their contents transferred to the base download path,
+    prefixed by their path in Seedr (excluding the base prefix), then are
+    deleted to conserve Seedr space.
     '''
-    async def scan(self, folder_id: int, folder_name: str, base_download_path: str):
-        folder_contents = self.seedr_client.list_folder_contents(folder_id=folder_id)
-        self.__recursively_process_seedr_folder(
-            folder_contents=folder_contents, 
-            base_download_path=base_download_path,
-            base_folder_name=folder_name,
-        )
+    async def scan(self, scan_prefix: str, base_download_path: str):
+        folder_contents = self.seedr_client.list_root_contents()
+
+        for child_folder in folder_contents['folders']:
+            folder_name = child_folder['name']
+            if folder_name.lower().startswith(scan_prefix.lower()):
+                child_folder_id = child_folder['id']
+                child_folder_contents = self.seedr_client.list_folder_contents(folder_id=child_folder_id)
+
+                print(f"Processing {child_folder}")
+                self.__recursively_process_seedr_folder(
+                    folder_contents=child_folder_contents, 
+                    base_download_path=base_download_path,
+                    scan_prefix=scan_prefix,
+                    cur_path=folder_name
+                )
+                # processed the contents of the folder; safe to delete it
+                self.seedr_client.delete_folder(folder_id=child_folder_id)
+                print(f"Finished processing and deleted {child_folder}")
     
     '''
     Recursively processes the input folder contents, including all children
     folders.
+
+    Only inputs prefixed
 
     A file is processed once the contents of the folder have been downloaded,
     and marked in the registry as processed.
@@ -51,8 +66,8 @@ class MediaBridgeManager():
     def __recursively_process_seedr_folder(
             self, 
             folder_contents: any,
-            base_folder_name: str, 
             base_download_path: str, 
+            scan_prefix: str, 
             cur_path: str = "",
     ):
         for folder in folder_contents['folders']:
@@ -70,16 +85,16 @@ class MediaBridgeManager():
             self.__recursively_process_seedr_folder(
                 folder_contents=child_folder_contents, 
                 base_download_path=base_download_path, 
-                base_folder_name=base_folder_name,
+                scan_prefix=scan_prefix,
                 cur_path=folder_name,
             )
             self.processed_file_registry.mark_processed(item_id=folder_id, timestamp=timestamp)
             self.seedr_client.delete_folder(folder_id=folder_id)
-            print(f"Finished scanning and deleted {folder}")
+            
 
         for file in folder_contents['files']:
             file_name = file['name']
-            valid_cur_path = cur_path.replace(base_folder_name, "").replace("\"", "").split("/")
+            valid_cur_path = cur_path.replace(scan_prefix, "").replace("\"", "").strip().split("/")
             output_path = os.path.join(base_download_path, *valid_cur_path, file_name)
             print(output_path)
             self.seedr_client.download_file(
