@@ -145,16 +145,19 @@ async def main():
 
     print("Starting scans.")
     while True:
-        await bridgeManager.scan(
-            folder_id=series_folder_id,
-            base_download_path=configuration.series_storage_path, 
-            folder_name=configuration.seedr_series_folder_name,
-        )
-        await bridgeManager.scan(
-            folder_id=movies_folder_id,
-            base_download_path=configuration.movies_storage_path,
-            folder_name=configuration.seedr_movies_folder_name,
-        )
+        try:
+            await bridgeManager.scan(
+                folder_id=series_folder_id,
+                base_download_path=configuration.series_storage_path, 
+                folder_name=configuration.seedr_series_folder_name,
+            )
+            await bridgeManager.scan(
+                folder_id=movies_folder_id,
+                base_download_path=configuration.movies_storage_path,
+                folder_name=configuration.seedr_movies_folder_name,
+            )
+        except Exception as e:
+            print(e)
         await asyncio.sleep(30)
 
 if __name__ == "__main__":
